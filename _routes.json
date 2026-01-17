@@ -1,7 +1,11 @@
 {
   "version": 1,
   "include": [
-    "/api/*"
+    "/api/*",
+    "/dav/*",
+    "/file/*",
+    "/random/*",
+    "/upload/*"
   ],
   "exclude": []
 }
