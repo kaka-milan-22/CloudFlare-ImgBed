@@ -106,6 +106,24 @@ async function handleFileUpload(context, message, bot, botConfig) {
         mimeType = document.mime_type;
     }
 
+    if (!mimeType && fileName) {
+        const lowerName = fileName.toLowerCase();
+        if (lowerName.endsWith('.heic')) {
+            mimeType = 'image/heic';
+        } else if (lowerName.endsWith('.heif')) {
+            mimeType = 'image/heif';
+        }
+    }
+
+    if (mimeType === 'application/octet-stream' && fileName) {
+        const lowerName = fileName.toLowerCase();
+        if (lowerName.endsWith('.heic')) {
+            mimeType = 'image/heic';
+        } else if (lowerName.endsWith('.heif')) {
+            mimeType = 'image/heif';
+        }
+    }
+
     if (!botConfig.telegramBot.allowedFileTypes.includes(mimeType)) {
         await bot.sendErrorMessage(chatId, 'invalid_file_type');
         return new Response('OK');
