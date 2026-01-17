@@ -17,17 +17,7 @@ export class TelegramBot {
     }
 
     async sendResponse(chatId, url, userPreferences, fileName = '') {
-        const formats = userPreferences.formats || ['html', 'markdown'];
-
-        if (formats.includes('html')) {
-            await this.sendPlain(chatId, url);
-        }
-
-        if (formats.includes('markdown')) {
-            const linkText = this.escapeMarkdownV2(fileName || 'Link');
-            const safeUrl = this.escapeMarkdownUrl(url);
-            await this.sendMarkdown(chatId, `[${linkText}](${safeUrl})`);
-        }
+        await this.sendPlain(chatId, url);
     }
 
     async sendMarkdown(chatId, text) {
@@ -136,7 +126,6 @@ Just send me an image and I'll upload it for you!
 
 <b>Available output formats:</b>
 • HTML - url
-• Markdown - [link](url)
 
 <b>Settings:</b>
 Use /settings to choose your preferred formats.
