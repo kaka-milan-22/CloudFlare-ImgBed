@@ -41,7 +41,7 @@ async function handleCommand(context, text, bot, chatId, botConfig) {
 
         case '/settings':
             if (args.length > 0) {
-                return await handleSettingsCommand(bot, chatId, args);
+                  return await handleSettingsCommand(bot, chatId, args);
             }
             await bot.formatSettingsMessage(chatId);
             return new Response('OK');
@@ -53,36 +53,8 @@ async function handleCommand(context, text, bot, chatId, botConfig) {
 }
 
 async function handleSettingsCommand(bot, chatId, args) {
-    const formatStr = args[0];
-    const channel = args[1];
-
-    const validFormats = ['html', 'markdown', 'plain'];
+    const channel = (args[0] || '').toLowerCase();
     const validChannels = ['telegram', 'cfr2', 's3', 'discord', 'huggingface'];
-
-    if (formatStr) {
-        const formats = formatStr.toLowerCase().split(',').map(f => f.trim());
-        const invalidFormats = formats.filter(f => !validFormats.includes(f));
-
-        if (invalidFormats.length > 0) {
-            await bot.sendPlain(chatId,
-                `❌ Invalid format(s): ${invalidFormats.join(', ')}\n` +
-                `Valid formats: ${validFormats.join(', ')}`
-            );
-            return new Response('OK');
-        }
-
-        if (formats.length === 0) {
-            await bot.sendPlain(chatId, '❌ No formats specified.');
-            return new Response('OK');
-        }
-
-        await bot.setUserPreferences(chatId, { formats });
-        const channelText = channel ? `, using channel: ${channel}` : '';
-        await bot.sendPlain(chatId,
-            `✅ Settings updated! Formats: ${formats.join(', ')}${channelText}`
-        );
-        return new Response('OK');
-    }
 
     if (channel && !validChannels.includes(channel)) {
         await bot.sendPlain(chatId,

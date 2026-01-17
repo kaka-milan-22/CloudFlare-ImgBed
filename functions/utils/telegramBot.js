@@ -124,11 +124,8 @@ export class TelegramBot {
 <b>Usage:</b>
 Just send me an image and I'll upload it for you!
 
-<b>Available output formats:</b>
-• HTML - url
-
 <b>Settings:</b>
-Use /settings to choose your preferred formats.
+Use /settings to choose your upload channel.
         `.trim();
 
         return await this.sendHtml(chatId, text);
@@ -136,30 +133,18 @@ Use /settings to choose your preferred formats.
 
     async formatSettingsMessage(chatId) {
         const prefs = await this.getUserPreferences(chatId);
-
-        const formatLabels = {
-            html: '✅ HTML',
-            markdown: '✅ Markdown',
-            plain: '✅ Plain text'
-        };
-
-        const formatStatus = prefs.formats.map(f => formatLabels[f] || f).join('\n');
-
         const text = `
 ⚙️ <b>Your Settings</b>
-
-<b>Output formats:</b>
-${formatStatus}
 
 <b>Upload channel:</b>
 ${prefs.uploadChannel}
 
 <b>To change settings:</b>
-/settings [formats] [channel]
+/settings [channel]
 
 Example:
-/settings html,markdown telegram
-/settings plain s3
+/settings telegram
+/settings s3
         `.trim();
 
         return await this.sendHtml(chatId, text);
