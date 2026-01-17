@@ -83,34 +83,83 @@ async function authentication(context) {
     return context.next();
 }
 
-export const onRequest = [authentication, async function onRequest(context) {
+async function onRequestPost(context) {
     const { request, env } = context;
-
     const db = getDatabase(env);
 
-    if (request.method === 'GET') {
-        const settings = await getTelegramBotConfig(db, env)
+    const body = await request.json();
+    const settings = body;
 
-        return new Response(JSON.stringify(settings), {
-            headers: {
-                'content-type': 'application/json',
-            },
-        })
+    await db.put('manage@sysConfig@telegram_bot', JSON.stringify(settings));
+
+    return new Response(JSON.stringify(settings), {
+        headers: {
+            'content-type': 'application/json',
+        },
+    });
+}
+
+async function onRequestGet(context) {
+    const { request, env } = context;
+    const db = getDatabase(env);
+
+    const settings = await getTelegramBotConfig(db, env);
+
+    return new Response(JSON.stringify(settings), {
+        headers: {
+            'content-type': 'application/json',
+        },
+    });
+}
+
+export async function onRequest(context) {
+    const authResult = await authentication(context);
+
+    if (authResult) {
+        return authResult;
+    }
+
+    const { request } = context;
+
+    if (request.method === 'GET') {
+        return await onRequestGet(context);
     }
 
     if (request.method === 'POST') {
-        const body = await request.json()
-        const settings = body
-
-        await db.put('manage@sysConfig@telegram_bot', JSON.stringify(settings))
-
-        return new Response(JSON.stringify(settings), {
-            headers: {
-                'content-type': 'application/json',
-            },
-        })
+        return await onRequestPost(context);
     }
-}];
+
+    return new Response('Method Not Allowed', { status: 405 });
+}
+
+export async function onRequestPost(context) {
+    const { request, env } = context;
+    const db = getDatabase(env);
+
+    const body = await request.json();
+    const settings = body;
+
+    await db.put('manage@sysConfig@telegram_bot', JSON.stringify(settings));
+
+    return new Response(JSON.stringify(settings), {
+        headers: {
+            'content-type': 'application/json',
+        },
+    });
+}
+
+export async function onRequestGet(context) {
+    const { request, env } = context;
+    const db = getDatabase(env);
+
+    const settings = await getTelegramBotConfig(db, env);
+
+    return new Response(JSON.stringify(settings), {
+        headers: {
+            'content-type': 'application/json',
+        },
+    });
+}
 
 export async function getTelegramBotConfig(db, env) {
     const settings = {}
