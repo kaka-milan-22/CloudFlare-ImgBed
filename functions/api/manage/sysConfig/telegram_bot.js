@@ -72,7 +72,7 @@ export async function getTelegramBotConfig(db, env) {
     telegramBot.allowUserPreferences = settingsKV.telegramBot?.allowUserPreferences !== false;
     telegramBot.rateLimitPerMinute = settingsKV.telegramBot?.rateLimitPerMinute || 10;
     telegramBot.apiToken = settingsKV.telegramBot?.apiToken || '';
-    telegramBot.allowedFileTypes = settingsKV.telegramBot?.allowedFileTypes || [
+    const defaultAllowedTypes = [
         'image/jpeg',
         'image/png',
         'image/gif',
@@ -81,6 +81,14 @@ export async function getTelegramBotConfig(db, env) {
         'image/heic',
         'image/heif'
     ];
+    const storedAllowedTypes = settingsKV.telegramBot?.allowedFileTypes;
+    if (Array.isArray(storedAllowedTypes) && storedAllowedTypes.length > 0) {
+        const merged = new Set(storedAllowedTypes);
+        defaultAllowedTypes.forEach((t) => merged.add(t));
+        telegramBot.allowedFileTypes = Array.from(merged);
+    } else {
+        telegramBot.allowedFileTypes = defaultAllowedTypes;
+    }
     telegramBot.maxFileSizeMB = settingsKV.telegramBot?.maxFileSizeMB || 50;
 
     settings.telegramBot = telegramBot;
