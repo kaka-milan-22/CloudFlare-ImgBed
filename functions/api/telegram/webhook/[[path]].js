@@ -179,12 +179,15 @@ async function handleFileUpload(context, message, bot, botConfig) {
             console.error('Upload API error:', errorText);
 
             if (errorText.includes('Unauthorized') || errorText.includes('401')) {
-                return await bot.sendErrorMessage(chatId, 'unauthorized');
+                await bot.sendErrorMessage(chatId, 'unauthorized');
+                return new Response('OK');
             } else if (errorText.includes('quota') || errorText.includes('space')) {
-                return await bot.sendErrorMessage(chatId, 'storage_full');
+                await bot.sendErrorMessage(chatId, 'storage_full');
+                return new Response('OK');
             }
 
-            return await bot.sendErrorMessage(chatId, 'upload_failed');
+            await bot.sendErrorMessage(chatId, 'upload_failed');
+            return new Response('OK');
         }
 
         const uploadResult = await uploadResponse.json();
