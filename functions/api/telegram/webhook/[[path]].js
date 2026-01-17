@@ -167,10 +167,16 @@ async function handleFileUpload(context, message, bot, botConfig) {
         const userPrefs = await bot.getUserPreferences(chatId);
         uploadParams.set('uploadChannel', userPrefs.uploadChannel || botConfig.telegramBot.defaultUploadChannel);
         uploadParams.set('returnFormat', 'full');
-        uploadParams.set('authCode', botConfig.telegramBot.apiToken);
+        const authToken = botConfig.telegramBot.apiToken;
+
+        const uploadHeaders = {};
+        if (authToken) {
+            uploadHeaders.Authorization = `Bearer ${authToken}`;
+        }
 
         const uploadResponse = await fetch(`${uploadUrl}?${uploadParams.toString()}`, {
             method: 'POST',
+            headers: uploadHeaders,
             body: formData
         });
 
