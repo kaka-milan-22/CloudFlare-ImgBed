@@ -205,28 +205,41 @@ async function handleCallbackQuery(context, callbackQuery, bot) {
 export async function onRequest(context) {
     const { request, env, params } = context;
 
+    console.log('Webhook received request:', {
+        method: request.method,
+        path: params.path,
+        url: request.url
+    });
+
     // 只处理POST请求
     if (request.method !== 'POST') {
+        console.log('Rejecting non-POST request');
         return new Response('Method Not Allowed', { status: 405 });
     }
 
-    const botConfig = await fetchTelegramBotConfig(env);
-
-    if (!botConfig.telegramBot || !botConfig.telegramBot.enabled) {
-        return new Response('Telegram Bot is not enabled', { status: 503 });
-    }
-
-    // 获取webhook secret从路径参数
-    const secretFromPath = params.path;
-
-    if (secretFromPath !== botConfig.telegramBot.webhookSecret) {
-        return new Response('Unauthorized', { status: 401 });
-    }
-
-    const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
-
     try {
+        const botConfig = await fetchTelegramBotConfig(env);
+        console.log('Bot config loaded:', { enabled: botConfig.telegramBot?.enabled });
+
+        if (!botConfig.telegramBot || !botConfig.telegramBot.enabled) {
+            return new Response('Telegram Bot is not enabled', { status: 503 });
+        }
+
+        // 获取webhook secret从路径参数
+        const secretFromPath = params.path;
+        console.log('Secret comparison:', { 
+            fromPath: secretFromPath, 
+            expected: botConfig.telegramBot.webhookSecret 
+        });
+
+        if (secretFromPath !== botConfig.telegramBot.webhookSecret) {
+            return new Response('Unauthorized', { status: 401 });
+        }
+
+        const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
+
         const update = await request.json();
+        console.log('Received update:', update);
 
         if (update.message) {
             return await handleTelegramMessage(context, update.message, bot, botConfig);
