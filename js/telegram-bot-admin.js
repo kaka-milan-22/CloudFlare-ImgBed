@@ -139,15 +139,6 @@
             <select class="tg-bot-select" id="tg-bot-channel"></select>
           </div>
         </div>
-        <div class="el-form-item">
-          <label class="el-form-item__label">启用压缩</label>
-          <div class="el-form-item__content">
-            <div class="el-switch tg-bot-switch" id="tg-bot-compress-switch">
-              <input class="el-switch__input" type="checkbox" id="tg-bot-compress" />
-              <span class="el-switch__core"><span class="el-switch__action"></span></span>
-            </div>
-          </div>
-        </div>
         <div class="actions" data-v-6c3b44d2>
           <button class="el-button el-button--primary" type="button" id="tg-bot-save">保存设置</button>
           <button class="el-button" type="button" id="tg-bot-copy">复制 Webhook URL</button>
@@ -165,8 +156,6 @@
     const webhookEl = section.querySelector('#tg-bot-webhook');
     const urlEl = section.querySelector('#tg-bot-url');
     const channelEl = section.querySelector('#tg-bot-channel');
-    const compressEl = section.querySelector('#tg-bot-compress');
-    const compressSwitchEl = section.querySelector('#tg-bot-compress-switch');
     const saveBtn = section.querySelector('#tg-bot-save');
     const copyBtn = section.querySelector('#tg-bot-copy');
     const statusEl = section.querySelector('#tg-bot-status');
@@ -191,8 +180,6 @@
     function syncSwitchClass() {
       switchEl.classList.toggle('is-checked', Boolean(enabledEl.checked));
       switchEl.classList.toggle('is-disabled', Boolean(enabledEl.disabled));
-      compressSwitchEl.classList.toggle('is-checked', Boolean(compressEl.checked));
-      compressSwitchEl.classList.toggle('is-disabled', Boolean(compressEl.disabled));
     }
 
     function setDisabled(isDisabled) {
@@ -200,7 +187,6 @@
       tokenEl.disabled = isDisabled;
       webhookEl.disabled = isDisabled;
       channelEl.disabled = isDisabled;
-      compressEl.disabled = isDisabled;
       saveBtn.disabled = isDisabled;
       syncSwitchClass();
       if (isDisabled) {
@@ -262,7 +248,6 @@
         tokenEl.value = currentConfig.botToken || '';
         webhookEl.value = currentConfig.webhookSecret || '';
         channelEl.value = currentConfig.defaultUploadChannel || channelEl.value || 'telegram';
-        compressEl.checked = currentConfig.serverCompressEnabled !== false;
         updateWebhookUrl();
 
         setDisabled(Boolean(currentConfig.fixed));
@@ -282,7 +267,6 @@
             botToken: tokenEl.value.trim(),
             webhookSecret: webhookEl.value.trim(),
             defaultUploadChannel: channelEl.value || 'telegram',
-            serverCompressEnabled: Boolean(compressEl.checked),
           },
         };
 
@@ -305,16 +289,10 @@
 
     webhookEl.addEventListener('input', updateWebhookUrl);
     enabledEl.addEventListener('change', syncSwitchClass);
-    compressEl.addEventListener('change', syncSwitchClass);
     switchEl.addEventListener('click', () => {
       if (enabledEl.disabled) return;
       enabledEl.checked = !enabledEl.checked;
       enabledEl.dispatchEvent(new Event('change'));
-    });
-    compressSwitchEl.addEventListener('click', () => {
-      if (compressEl.disabled) return;
-      compressEl.checked = !compressEl.checked;
-      compressEl.dispatchEvent(new Event('change'));
     });
     tokenEl.addEventListener('input', () => {
       if (!webhookEl.value.trim() && tokenEl.value.trim().length >= 16) {

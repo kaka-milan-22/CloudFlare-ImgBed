@@ -74,7 +74,6 @@ export async function getTelegramBotConfig(db, env) {
     telegramBot.apiToken = settingsKV.telegramBot?.apiToken || '';
     telegramBot.allowedFileTypes = settingsKV.telegramBot?.allowedFileTypes || ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     telegramBot.maxFileSizeMB = settingsKV.telegramBot?.maxFileSizeMB || 50;
-    telegramBot.serverCompressEnabled = settingsKV.telegramBot?.serverCompressEnabled !== false;
 
     settings.telegramBot = telegramBot;
 

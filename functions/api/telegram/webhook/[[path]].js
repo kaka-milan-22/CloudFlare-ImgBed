@@ -30,12 +30,6 @@ async function handleCommand(context, text, bot, chatId, botConfig) {
     switch (command) {
         case '/start':
             await bot.sendPlain(chatId,
-                '👋 Welcome! Send me an image and I\'ll upload it for you.\n\n' +
-                'Use /help to see available commands.'
-            );
-            return new Response('OK');
-
-        case '/help':
             await bot.formatHelpMessage(chatId);
             return new Response('OK');
 
@@ -139,10 +133,6 @@ async function handleFileUpload(context, message, bot, botConfig) {
         const userPrefs = await bot.getUserPreferences(chatId);
         uploadParams.set('uploadChannel', userPrefs.uploadChannel || botConfig.telegramBot.defaultUploadChannel);
         uploadParams.set('returnFormat', 'full');
-        const compressEnabled = botConfig.telegramBot?.serverCompressEnabled !== false;
-        if (!compressEnabled) {
-            uploadParams.set('serverCompress', 'false');
-        }
         const authToken = botConfig.telegramBot.apiToken;
 
         const uploadHeaders = {};
