@@ -203,7 +203,7 @@ async function handleCallbackQuery(context, callbackQuery, bot) {
 }
 
 export async function onRequestPost(context) {
-    const { request, env } = context;
+    const { request, env, params } = context;
 
     const botConfig = await fetchTelegramBotConfig(env);
 
@@ -211,9 +211,8 @@ export async function onRequestPost(context) {
         return new Response('Telegram Bot is not enabled', { status: 503 });
     }
 
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split('/');
-    const secretFromPath = pathParts[pathParts.length - 1];
+    // 获取webhook secret从路径参数
+    const secretFromPath = params.path;
 
     if (secretFromPath !== botConfig.telegramBot.webhookSecret) {
         return new Response('Unauthorized', { status: 401 });
