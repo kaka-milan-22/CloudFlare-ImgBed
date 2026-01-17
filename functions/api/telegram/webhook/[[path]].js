@@ -239,7 +239,7 @@ async function tryConvertHeicToJpeg(bot, fileId) {
         if (!filePath) return null;
 
         const fileUrl = `${bot.api.fileDomain}/file/bot${bot.botToken}/${filePath}`;
-        const response = await fetch(fileUrl, {
+        let response = await fetch(fileUrl, {
             headers: bot.api.defaultHeaders,
             cf: {
                 image: {
@@ -249,15 +249,31 @@ async function tryConvertHeicToJpeg(bot, fileId) {
         });
 
         if (!response.ok) {
+            response = null;
+        }
+
+        if (response) {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.toLowerCase().includes('image/jpeg')) {
+                return await response.blob();
+            }
+        }
+
+        const fallbackUrl = `https://wsrv.nl/?url=${encodeURIComponent(fileUrl)}&output=jpg`;
+        const fallbackResponse = await fetch(fallbackUrl, {
+            headers: bot.api.defaultHeaders
+        });
+
+        if (!fallbackResponse.ok) {
             return null;
         }
 
-        const contentType = response.headers.get('content-type') || '';
-        if (!contentType.toLowerCase().includes('image/jpeg')) {
+        const fallbackType = fallbackResponse.headers.get('content-type') || '';
+        if (!fallbackType.toLowerCase().includes('image/jpeg')) {
             return null;
         }
 
-        return await response.blob();
+        return await fallbackResponse.blob();
     } catch (error) {
         console.error('HEIC conversion failed:', error);
         return null;
