@@ -24,9 +24,9 @@ export class TelegramBot {
         }
 
         if (formats.includes('markdown')) {
-            const altText = this.escapeMarkdownV2(fileName || 'image');
+            const linkText = this.escapeMarkdownV2(fileName || 'Link');
             const safeUrl = this.escapeMarkdownUrl(url);
-            await this.sendMarkdown(chatId, `![${altText}](${safeUrl})`);
+            await this.sendMarkdown(chatId, `[${linkText}](${safeUrl})`);
         }
     }
 
@@ -136,7 +136,7 @@ Just send me an image and I'll upload it for you!
 
 <b>Available output formats:</b>
 • HTML - url
-• Markdown - ![image](url)
+• Markdown - [link](url)
 
 <b>Settings:</b>
 Use /settings to choose your preferred formats.
