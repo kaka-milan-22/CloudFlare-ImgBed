@@ -1,7 +1,12 @@
 import { fetchTelegramBotConfig } from '../../utils/sysConfig.js';
 
-export async function onRequestPost(context) {
+export async function onRequest(context) {
     const { request, env, params } = context;
+
+    // 只处理POST请求，其他请求方法直接返回405
+    if (request.method !== 'POST') {
+        return new Response('Method Not Allowed', { status: 405 });
+    }
 
     const botConfig = await fetchTelegramBotConfig(env);
 
