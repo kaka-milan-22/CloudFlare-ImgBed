@@ -136,27 +136,30 @@ async function handleFileUpload(context, message, bot, botConfig) {
     }
 
     try {
-        let fileBlob = null;
+        const fileResponse = await bot.downloadFile(fileId);
+
+        if (!fileResponse.ok) {
+            throw new Error('Failed to download file from Telegram');
+        }
+
+        let fileBlob = await fileResponse.blob();
         let finalFileName = fileName;
         let finalMimeType = mimeType;
 
         if (isHeicType(mimeType, fileName)) {
-            const converted = await tryConvertHeicToJpeg(bot, fileId);
+            const converted = await convertBlobToJpeg(fileBlob, fileName);
             if (converted) {
-                fileBlob = converted;
-                finalFileName = replaceFileExtension(fileName, 'jpg');
+                fileBlob = converted.blob;
+                finalFileName = converted.fileName;
                 finalMimeType = 'image/jpeg';
+            } else {
+                const convertedByUrl = await tryConvertHeicToJpeg(bot, fileId);
+                if (convertedByUrl) {
+                    fileBlob = convertedByUrl;
+                    finalFileName = replaceFileExtension(fileName, 'jpg');
+                    finalMimeType = 'image/jpeg';
+                }
             }
-        }
-
-        if (!fileBlob) {
-            const fileResponse = await bot.downloadFile(fileId);
-
-            if (!fileResponse.ok) {
-                throw new Error('Failed to download file from Telegram');
-            }
-
-            fileBlob = await fileResponse.blob();
         }
 
         const formData = new FormData();
@@ -276,6 +279,25 @@ async function tryConvertHeicToJpeg(bot, fileId) {
         return await fallbackResponse.blob();
     } catch (error) {
         console.error('HEIC conversion failed:', error);
+        return null;
+    }
+}
+
+async function convertBlobToJpeg(blob, fileName) {
+    try {
+        const imageBitmap = await createImageBitmap(blob);
+        const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+        ctx.drawImage(imageBitmap, 0, 0);
+        const jpegBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
+        if (!jpegBlob || jpegBlob.size === 0) return null;
+        return {
+            blob: jpegBlob,
+            fileName: replaceFileExtension(fileName, 'jpg')
+        };
+    } catch (error) {
+        console.error('HEIC canvas conversion failed:', error);
         return null;
     }
 }
