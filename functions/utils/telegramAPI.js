@@ -139,4 +139,32 @@ export class TelegramAPI {
         return response;
     }
 
+    async sendMessage(chatId, text, parseMode = null) {
+        const url = `${this.baseURL}/sendMessage`;
+        const body = {
+            chat_id: chatId,
+            text: text
+        };
+
+        if (parseMode) {
+            body.parse_mode = parseMode;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                ...this.defaultHeaders,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Telegram API error: ${response.statusText} - ${errorText}`);
+        }
+
+        return await response.json();
+    }
+
 }

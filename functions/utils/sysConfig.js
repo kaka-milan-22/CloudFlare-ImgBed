@@ -2,6 +2,7 @@ import { getUploadConfig } from '../api/manage/sysConfig/upload';
 import { getSecurityConfig } from '../api/manage/sysConfig/security';
 import { getPageConfig } from '../api/manage/sysConfig/page';
 import { getOthersConfig } from '../api/manage/sysConfig/others';
+import { getTelegramBotConfig } from '../api/manage/sysConfig/telegram_bot';
 import { getDatabase } from './databaseAdapter.js';
 import { getIndexMeta } from './indexManager.js';
 
@@ -125,9 +126,32 @@ export async function fetchOthersConfig(env) {
         return settings;
     } catch (error) {
         console.error('Failed to fetch others config:', error);
-        // 返回默认配置
         return {
             telemetry: { enabled: false }
+        };
+    }
+}
+
+export async function fetchTelegramBotConfig(env) {
+    try {
+        const db = getDatabase(env);
+        const settings = await getTelegramBotConfig(db, env);
+        return settings;
+    } catch (error) {
+        console.error('Failed to fetch telegram bot config:', error);
+        return {
+            telegramBot: {
+                botToken: '',
+                webhookSecret: '',
+                enabled: false,
+                defaultFormats: ['html', 'markdown'],
+                defaultUploadChannel: 'telegram',
+                allowUserPreferences: true,
+                rateLimitPerMinute: 10,
+                apiToken: '',
+                allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+                maxFileSizeMB: 50
+            }
         };
     }
 }
