@@ -8,26 +8,67 @@
     const style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = `
-      .tg-bot-form { margin-top: 12px; display: grid; gap: 12px; }
-      .tg-bot-row { display: grid; grid-template-columns: 120px 1fr; align-items: center; gap: 12px; }
-      .tg-bot-row label { color: #606266; font-size: 14px; }
-      .tg-bot-row input[type="text"],
-      .tg-bot-row input[type="password"] {
-        width: 100%; padding: 8px 10px; border: 1px solid #dcdfe6; border-radius: 6px; font-size: 14px;
+      .tg-bot-url {
+        font-family: "Courier New", monospace;
+        word-break: break-all;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--el-border-color-lighter);
+        background: var(--el-fill-color-lighter);
+        color: var(--el-text-color-primary);
       }
-      .tg-bot-row input[disabled] { background: #f5f7fa; color: #c0c4cc; }
-      .tg-bot-actions { margin-top: 8px; display: flex; gap: 10px; align-items: center; }
-      .tg-bot-actions button {
-        padding: 8px 14px; border-radius: 6px; border: 1px solid #409eff; background: #409eff; color: #fff; cursor: pointer;
+      .tg-bot-status {
+        font-size: 12px;
+        color: var(--el-color-success);
       }
-      .tg-bot-actions button[disabled] { background: #a0cfff; border-color: #a0cfff; cursor: not-allowed; }
-      .tg-bot-hint { font-size: 12px; color: #909399; }
-      .tg-bot-status { font-size: 12px; color: #67c23a; }
-      .tg-bot-status.error { color: #f56c6c; }
-      .tg-bot-url { font-family: monospace; word-break: break-all; }
-      .tg-bot-copy {
-        padding: 6px 10px; border-radius: 6px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer; font-size: 12px;
+      .tg-bot-status.error {
+        color: var(--el-color-danger);
       }
+      .tg-bot-hint {
+        font-size: 12px;
+        color: var(--el-text-color-secondary);
+        margin-top: 6px;
+      }
+      .tg-bot-switch {
+        display: inline-flex;
+        align-items: center;
+      }
+      .tg-bot-switch .el-switch__input { display: none; }
+      .tg-bot-switch .el-switch__core {
+        position: relative;
+        width: 40px;
+        height: 20px;
+        border-radius: 10px;
+        background: var(--el-border-color);
+        transition: all .2s;
+        box-sizing: border-box;
+        display: inline-block;
+        cursor: pointer;
+      }
+      .tg-bot-switch .el-switch__action {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        transition: all .2s;
+      }
+      .tg-bot-switch.is-checked .el-switch__core {
+        background: var(--el-color-primary);
+      }
+      .tg-bot-switch.is-checked .el-switch__action {
+        left: 22px;
+      }
+      .tg-bot-switch.is-disabled {
+        opacity: .6;
+        cursor: not-allowed;
+      }
+      .tg-bot-switch.is-disabled .el-switch__core {
+        cursor: not-allowed;
+      }
+      .tg-bot-inline { display: flex; align-items: center; gap: 8px; }
     `;
     document.head.appendChild(style);
   }
@@ -39,28 +80,48 @@
     const section = document.createElement('div');
     section.className = 'first-settings';
     section.id = SECTION_ID;
+    section.setAttribute('data-v-6c3b44d2', '');
     section.innerHTML = `
-      <h3 class="first-title">Telegram Bot</h3>
-      <div class="tg-bot-form">
-        <div class="tg-bot-row">
-          <label>启用</label>
-          <input type="checkbox" id="tg-bot-enabled" />
+      <h3 class="first-title" data-v-6c3b44d2>Telegram Bot</h3>
+      <div class="el-form" data-v-6c3b44d2>
+        <div class="el-form-item">
+          <label class="el-form-item__label">启用</label>
+          <div class="el-form-item__content">
+            <div class="el-switch tg-bot-switch" id="tg-bot-switch">
+              <input class="el-switch__input" type="checkbox" id="tg-bot-enabled" />
+              <span class="el-switch__core"><span class="el-switch__action"></span></span>
+            </div>
+          </div>
         </div>
-        <div class="tg-bot-row">
-          <label>Bot Token</label>
-          <input type="password" id="tg-bot-token" placeholder="请输入 Bot Token" autocomplete="new-password" />
+        <div class="el-form-item">
+          <label class="el-form-item__label">Bot Token</label>
+          <div class="el-form-item__content">
+            <div class="el-input">
+              <div class="el-input__wrapper">
+                <input class="el-input__inner" type="password" id="tg-bot-token" placeholder="请输入 Bot Token" autocomplete="new-password" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="tg-bot-row">
-          <label>Webhook Secret</label>
-          <input type="text" id="tg-bot-webhook" placeholder="自动生成或手动填写" />
+        <div class="el-form-item">
+          <label class="el-form-item__label">Webhook Secret</label>
+          <div class="el-form-item__content">
+            <div class="el-input">
+              <div class="el-input__wrapper">
+                <input class="el-input__inner" type="text" id="tg-bot-webhook" placeholder="自动生成或手动填写" />
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="tg-bot-row">
-          <label>Webhook URL</label>
-          <div class="tg-bot-url" id="tg-bot-url">-</div>
+        <div class="el-form-item">
+          <label class="el-form-item__label">Webhook URL</label>
+          <div class="el-form-item__content">
+            <div class="tg-bot-url" id="tg-bot-url">-</div>
+          </div>
         </div>
-        <div class="tg-bot-actions">
-          <button id="tg-bot-save">保存设置</button>
-          <button class="tg-bot-copy" id="tg-bot-copy">复制 Webhook URL</button>
+        <div class="actions" data-v-6c3b44d2>
+          <button class="el-button el-button--primary" type="button" id="tg-bot-save">保存设置</button>
+          <button class="el-button" type="button" id="tg-bot-copy">复制 Webhook URL</button>
           <span class="tg-bot-status" id="tg-bot-status"></span>
         </div>
         <div class="tg-bot-hint" id="tg-bot-hint"></div>
@@ -70,6 +131,7 @@
     container.appendChild(section);
 
     const enabledEl = section.querySelector('#tg-bot-enabled');
+    const switchEl = section.querySelector('#tg-bot-switch');
     const tokenEl = section.querySelector('#tg-bot-token');
     const webhookEl = section.querySelector('#tg-bot-webhook');
     const urlEl = section.querySelector('#tg-bot-url');
@@ -94,11 +156,17 @@
       urlEl.textContent = `${location.origin}/api/telegram/webhook/${secret}`;
     }
 
+    function syncSwitchClass() {
+      switchEl.classList.toggle('is-checked', Boolean(enabledEl.checked));
+      switchEl.classList.toggle('is-disabled', Boolean(enabledEl.disabled));
+    }
+
     function setDisabled(isDisabled) {
       enabledEl.disabled = isDisabled;
       tokenEl.disabled = isDisabled;
       webhookEl.disabled = isDisabled;
       saveBtn.disabled = isDisabled;
+      syncSwitchClass();
       if (isDisabled) {
         hintEl.textContent = '已由环境变量锁定，需在部署环境中修改。';
       } else {
@@ -115,6 +183,7 @@
         currentConfig = data?.telegramBot || {};
 
         enabledEl.checked = Boolean(currentConfig.enabled);
+        syncSwitchClass();
         tokenEl.value = currentConfig.botToken || '';
         webhookEl.value = currentConfig.webhookSecret || '';
         updateWebhookUrl();
@@ -156,6 +225,12 @@
     }
 
     webhookEl.addEventListener('input', updateWebhookUrl);
+    enabledEl.addEventListener('change', syncSwitchClass);
+    switchEl.addEventListener('click', () => {
+      if (enabledEl.disabled) return;
+      enabledEl.checked = !enabledEl.checked;
+      enabledEl.dispatchEvent(new Event('change'));
+    });
     tokenEl.addEventListener('input', () => {
       if (!webhookEl.value.trim() && tokenEl.value.trim().length >= 16) {
         webhookEl.value = tokenEl.value.trim().slice(-16);
