@@ -218,7 +218,9 @@ export async function onRequest(context) {
         }
 
         // 获取webhook secret从路径参数
-        const secretFromPath = params.path;
+        const secretFromPath = Array.isArray(params?.path)
+            ? params.path.join('/')
+            : (params?.path || '');
 
         if (secretFromPath !== botConfig.telegramBot.webhookSecret) {
             return new Response('Unauthorized', { status: 401 });
