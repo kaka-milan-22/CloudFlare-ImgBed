@@ -1,6 +1,6 @@
-import { TelegramBot } from '../../utils/telegramBot.js';
-import { getDatabase } from '../../utils/databaseAdapter.js';
-import { fetchTelegramBotConfig } from '../../utils/sysConfig.js';
+import { TelegramBot } from '../../../utils/telegramBot.js';
+import { getDatabase } from '../../../utils/databaseAdapter.js';
+import { fetchTelegramBotConfig } from '../../../utils/sysConfig.js';
 
 async function handleTelegramMessage(context, message, bot, botConfig) {
     const { text, photo, document, from, chat } = message;
