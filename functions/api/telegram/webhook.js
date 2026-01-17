@@ -202,7 +202,7 @@ async function handleCallbackQuery(context, callbackQuery, bot) {
     return new Response('OK');
 }
 
-export async function onRequest(context) {
+export async function onRequestPost(context) {
     const { request, env } = context;
 
     const botConfig = await fetchTelegramBotConfig(env);
@@ -221,15 +221,20 @@ export async function onRequest(context) {
 
     const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
 
-    const update = await request.json();
+    try {
+        const update = await request.json();
 
-    if (update.message) {
-        return await handleTelegramMessage(context, update.message, bot, botConfig);
+        if (update.message) {
+            return await handleTelegramMessage(context, update.message, bot, botConfig);
+        }
+
+        if (update.callback_query) {
+            return await handleCallbackQuery(context, update.callback_query, bot);
+        }
+
+        return new Response('OK');
+    } catch (error) {
+        console.error('Error processing Telegram webhook:', error);
+        return new Response('OK'); // Always return OK to Telegram to avoid retries
     }
-
-    if (update.callback_query) {
-        return await handleCallbackQuery(context, update.callback_query, bot);
-    }
-
-    return new Response('OK');
 }
