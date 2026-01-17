@@ -1,7 +1,8 @@
 import { TelegramBot } from '../../utils/telegramBot.js';
 import { getDatabase } from '../../utils/databaseAdapter.js';
+import { fetchTelegramBotConfig } from '../../utils/sysConfig.js';
 
-async function handleMessage(context, message, bot, botConfig) {
+async function handleTelegramMessage(context, message, bot, botConfig) {
     const { text, photo, document, from, chat } = message;
     const chatId = chat.id;
 
@@ -202,24 +203,20 @@ async function handleCallbackQuery(context, callbackQuery, bot) {
 }
 
 export async function onRequest(context) {
-    const { request, env, data } = context;
+    const { request, env } = context;
 
-    const botConfig = data.botConfig || {};
+    const botConfig = await fetchTelegramBotConfig(env);
 
     if (!botConfig.telegramBot || !botConfig.telegramBot.enabled) {
         return new Response('Telegram Bot is not enabled', { status: 503 });
     }
 
-    if (request.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 204,
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Telegram-Bot-Api-Secret-Token',
-                'Access-Control-Max-Age': '86400',
-            }
-        });
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    const secretFromPath = pathParts[pathParts.length - 1];
+
+    if (secretFromPath !== botConfig.telegramBot.webhookSecret) {
+        return new Response('Unauthorized', { status: 401 });
     }
 
     const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
@@ -227,7 +224,7 @@ export async function onRequest(context) {
     const update = await request.json();
 
     if (update.message) {
-        return await handleMessage(context, update.message, bot, botConfig);
+        return await handleTelegramMessage(context, update.message, bot, botConfig);
     }
 
     if (update.callback_query) {
