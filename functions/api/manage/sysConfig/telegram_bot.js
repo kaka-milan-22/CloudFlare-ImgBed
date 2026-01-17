@@ -41,6 +41,7 @@ export async function onRequest(context) {
 
 export async function getTelegramBotConfig(db, env) {
     const settings = {};
+
     const settingsStr = await db.get('manage@sysConfig@telegram_bot');
     const settingsKV = settingsStr ? JSON.parse(settingsStr) : {};
 
