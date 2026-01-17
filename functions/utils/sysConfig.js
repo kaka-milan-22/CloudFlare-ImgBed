@@ -150,7 +150,8 @@ export async function fetchTelegramBotConfig(env) {
                 rateLimitPerMinute: 10,
                 apiToken: '',
                 allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
-                maxFileSizeMB: 50
+                maxFileSizeMB: 50,
+                serverCompressEnabled: true
             }
         };
     }

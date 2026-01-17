@@ -139,6 +139,10 @@ async function handleFileUpload(context, message, bot, botConfig) {
         const userPrefs = await bot.getUserPreferences(chatId);
         uploadParams.set('uploadChannel', userPrefs.uploadChannel || botConfig.telegramBot.defaultUploadChannel);
         uploadParams.set('returnFormat', 'full');
+        const compressEnabled = botConfig.telegramBot?.serverCompressEnabled !== false;
+        if (!compressEnabled) {
+            uploadParams.set('serverCompress', 'false');
+        }
         const authToken = botConfig.telegramBot.apiToken;
 
         const uploadHeaders = {};
