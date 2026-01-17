@@ -72,7 +72,15 @@ export async function getTelegramBotConfig(db, env) {
     telegramBot.allowUserPreferences = settingsKV.telegramBot?.allowUserPreferences !== false;
     telegramBot.rateLimitPerMinute = settingsKV.telegramBot?.rateLimitPerMinute || 10;
     telegramBot.apiToken = settingsKV.telegramBot?.apiToken || '';
-    telegramBot.allowedFileTypes = settingsKV.telegramBot?.allowedFileTypes || ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    telegramBot.allowedFileTypes = settingsKV.telegramBot?.allowedFileTypes || [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'image/heic',
+        'image/heif'
+    ];
     telegramBot.maxFileSizeMB = settingsKV.telegramBot?.maxFileSizeMB || 50;
 
     settings.telegramBot = telegramBot;
