@@ -12,6 +12,10 @@ export class TelegramBot {
         return String(text).replace(/([_\*\[\]\(\)~`>#+\-=|{}.!])/g, '\\$1');
     }
 
+    escapeMarkdownUrl(url) {
+        return String(url).replace(/([()])/g, '\\$1');
+    }
+
     async sendResponse(chatId, url, userPreferences, fileName = '') {
         const formats = userPreferences.formats || ['html', 'markdown'];
 
@@ -21,7 +25,7 @@ export class TelegramBot {
 
         if (formats.includes('markdown')) {
             const altText = this.escapeMarkdownV2(fileName || 'image');
-            const safeUrl = this.escapeMarkdownV2(url);
+            const safeUrl = this.escapeMarkdownUrl(url);
             await this.sendMarkdown(chatId, `![${altText}](${safeUrl})`);
         }
     }
