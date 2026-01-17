@@ -1,30 +1,6 @@
 import { TelegramBot } from '../../utils/telegramBot.js';
 import { getDatabase } from '../../utils/databaseAdapter.js';
 
-export async function onRequestPost(context) {
-    const { request, env, data } = context;
-
-    const botConfig = data.botConfig;
-
-    if (!botConfig.telegramBot || !botConfig.telegramBot.enabled) {
-        return new Response('Telegram Bot is not enabled', { status: 503 });
-    }
-
-    const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
-
-    const update = await request.json();
-
-    if (update.message) {
-        return await handleMessage(context, update.message, bot, botConfig);
-    }
-
-    if (update.callback_query) {
-        return await handleCallbackQuery(context, update.callback_query, bot);
-    }
-
-    return new Response('OK');
-}
-
 async function handleMessage(context, message, bot, botConfig) {
     const { text, photo, document, from, chat } = message;
     const chatId = chat.id;
@@ -221,6 +197,42 @@ async function handleCallbackQuery(context, callbackQuery, bot) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ callback_query_id: id })
     });
+
+    return new Response('OK');
+}
+
+export async function onRequest(context) {
+    const { request, env, data } = context;
+
+    const botConfig = data.botConfig || {};
+
+    if (!botConfig.telegramBot || !botConfig.telegramBot.enabled) {
+        return new Response('Telegram Bot is not enabled', { status: 503 });
+    }
+
+    if (request.method === 'OPTIONS') {
+        return new Response(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Telegram-Bot-Api-Secret-Token',
+                'Access-Control-Max-Age': '86400',
+            }
+        });
+    }
+
+    const bot = new TelegramBot(botConfig.telegramBot.botToken, env);
+
+    const update = await request.json();
+
+    if (update.message) {
+        return await handleMessage(context, update.message, bot, botConfig);
+    }
+
+    if (update.callback_query) {
+        return await handleCallbackQuery(context, update.callback_query, bot);
+    }
 
     return new Response('OK');
 }
