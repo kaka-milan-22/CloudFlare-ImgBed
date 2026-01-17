@@ -16,7 +16,7 @@ export class TelegramBot {
             messages.push(url);
         }
         if (formats.includes('markdown')) {
-            messages.push(`[${fileName || 'Link'}](${url})`);
+            messages.push(`![${fileName || 'image'}](${url})`);
         }
 
         const text = messages.join('\n\n');
