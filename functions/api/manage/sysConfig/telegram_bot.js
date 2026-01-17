@@ -52,15 +52,18 @@ export async function getTelegramBotConfig(db, env) {
         telegramBot.webhookSecret = env.TG_WEBHOOK_SECRET || generateWebhookSecret(env.TG_BOT_TOKEN);
         telegramBot.enabled = true;
         telegramBot.savePath = 'environment variable';
+        telegramBot.fixed = true;
     } else {
         if (settingsKV.telegramBot?.botToken) {
             telegramBot.botToken = settingsKV.telegramBot.botToken;
             telegramBot.webhookSecret = settingsKV.telegramBot.webhookSecret || generateWebhookSecret(settingsKV.telegramBot.botToken);
             telegramBot.enabled = settingsKV.telegramBot.enabled !== false;
+            telegramBot.fixed = false;
         } else {
             telegramBot.botToken = '';
             telegramBot.webhookSecret = '';
             telegramBot.enabled = false;
+            telegramBot.fixed = false;
         }
     }
 

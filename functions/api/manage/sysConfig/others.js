@@ -1,4 +1,5 @@
 import { getDatabase } from '../../../utils/databaseAdapter.js';
+import { getTelegramBotConfig } from './telegram_bot.js';
 
 export async function onRequest(context) {
     // 其他设置相关，GET方法读取设置，POST方法保存设置
@@ -28,6 +29,20 @@ export async function onRequest(context) {
     if (request.method === 'POST') {
         const body = await request.json()
         const settings = body
+
+        if (settings.telegramBot) {
+            const telegramBotSettings = await getTelegramBotConfig(db, env)
+            const mergedTelegramBot = {
+                ...telegramBotSettings.telegramBot,
+                ...settings.telegramBot,
+            }
+
+            if (!mergedTelegramBot.webhookSecret && mergedTelegramBot.botToken) {
+                mergedTelegramBot.webhookSecret = generateWebhookSecret(mergedTelegramBot.botToken)
+            }
+
+            await db.put('manage@sysConfig@telegram_bot', JSON.stringify({ telegramBot: mergedTelegramBot }))
+        }
 
         // 写入数据库
         await db.put('manage@sysConfig@others', JSON.stringify(settings))
@@ -90,6 +105,16 @@ export async function getOthersConfig(db, env) {
         fixed: false,
     }
 
+    const telegramBotSettings = await getTelegramBotConfig(db, env)
+    if (telegramBotSettings?.telegramBot) {
+        settings.telegramBot = telegramBotSettings.telegramBot
+    }
+
 
     return settings;
+}
+
+function generateWebhookSecret(botToken) {
+    if (!botToken) return '';
+    return botToken.slice(-16);
 }
