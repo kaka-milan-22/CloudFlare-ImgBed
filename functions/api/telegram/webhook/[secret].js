@@ -207,7 +207,7 @@ export async function onRequest(context) {
 
     console.log('Webhook received request:', {
         method: request.method,
-        path: params.path,
+        secret: params.secret,
         url: request.url
     });
 
@@ -226,7 +226,7 @@ export async function onRequest(context) {
         }
 
         // 获取webhook secret从路径参数
-        const secretFromPath = params.path;
+        const secretFromPath = params.secret;
         console.log('Secret comparison:', { 
             fromPath: secretFromPath, 
             expected: botConfig.telegramBot.webhookSecret 
