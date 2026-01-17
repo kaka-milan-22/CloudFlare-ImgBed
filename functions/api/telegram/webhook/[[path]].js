@@ -6,6 +6,11 @@ async function handleTelegramMessage(context, message, bot, botConfig) {
     const { text, photo, document, from, chat } = message;
     const chatId = chat.id;
 
+    const respondOk = async (promise) => {
+        await promise;
+        return new Response('OK');
+    };
+
     if (text && text.startsWith('/')) {
         return await handleCommand(context, text, bot, chatId, botConfig);
     }
@@ -24,22 +29,26 @@ async function handleCommand(context, text, bot, chatId, botConfig) {
 
     switch (command) {
         case '/start':
-            return await bot.sendPlain(chatId,
+            await bot.sendPlain(chatId,
                 '👋 Welcome! Send me an image and I\'ll upload it for you.\n\n' +
                 'Use /help to see available commands.'
             );
+            return new Response('OK');
 
         case '/help':
-            return await bot.formatHelpMessage();
+            await bot.formatHelpMessage(chatId);
+            return new Response('OK');
 
         case '/settings':
             if (args.length > 0) {
                 return await handleSettingsCommand(bot, chatId, args);
             }
-            return await bot.formatSettingsMessage(chatId);
+            await bot.formatSettingsMessage(chatId);
+            return new Response('OK');
 
         default:
-            return await bot.sendPlain(chatId, '❌ Unknown command. Use /help to see available commands.');
+            await bot.sendPlain(chatId, '❌ Unknown command. Use /help to see available commands.');
+            return new Response('OK');
     }
 }
 
@@ -55,36 +64,42 @@ async function handleSettingsCommand(bot, chatId, args) {
         const invalidFormats = formats.filter(f => !validFormats.includes(f));
 
         if (invalidFormats.length > 0) {
-            return await bot.sendPlain(chatId,
+            await bot.sendPlain(chatId,
                 `❌ Invalid format(s): ${invalidFormats.join(', ')}\n` +
                 `Valid formats: ${validFormats.join(', ')}`
             );
+            return new Response('OK');
         }
 
         if (formats.length === 0) {
-            return await bot.sendPlain(chatId, '❌ No formats specified.');
+            await bot.sendPlain(chatId, '❌ No formats specified.');
+            return new Response('OK');
         }
 
         await bot.setUserPreferences(chatId, { formats });
         const channelText = channel ? `, using channel: ${channel}` : '';
-        return await bot.sendPlain(chatId,
+        await bot.sendPlain(chatId,
             `✅ Settings updated! Formats: ${formats.join(', ')}${channelText}`
         );
+        return new Response('OK');
     }
 
     if (channel && !validChannels.includes(channel)) {
-        return await bot.sendPlain(chatId,
+        await bot.sendPlain(chatId,
             `❌ Invalid channel: ${channel}\n` +
             `Valid channels: ${validChannels.join(', ')}`
         );
+        return new Response('OK');
     }
 
     if (channel) {
         await bot.setUserPreferences(chatId, { uploadChannel: channel });
-        return await bot.sendPlain(chatId, `✅ Upload channel set to: ${channel}`);
+        await bot.sendPlain(chatId, `✅ Upload channel set to: ${channel}`);
+        return new Response('OK');
     }
 
-    return await bot.formatSettingsMessage(chatId);
+    await bot.formatSettingsMessage(chatId);
+    return new Response('OK');
 }
 
 async function handleFileUpload(context, message, bot, botConfig) {
@@ -96,9 +111,10 @@ async function handleFileUpload(context, message, bot, botConfig) {
 
     if (!rateLimit.allowed) {
         const resetTime = new Date(rateLimit.resetTime).toLocaleTimeString();
-        return await bot.sendPlain(chatId,
+        await bot.sendPlain(chatId,
             `⏱️ Rate limit exceeded. Try again after ${resetTime}.`
         );
+        return new Response('OK');
     }
 
     let fileId;
@@ -122,12 +138,14 @@ async function handleFileUpload(context, message, bot, botConfig) {
     }
 
     if (!botConfig.telegramBot.allowedFileTypes.includes(mimeType)) {
-        return await bot.sendErrorMessage(chatId, 'invalid_file_type');
+        await bot.sendErrorMessage(chatId, 'invalid_file_type');
+        return new Response('OK');
     }
 
     const maxSizeBytes = botConfig.telegramBot.maxFileSizeMB * 1024 * 1024;
     if (fileSize > maxSizeBytes) {
-        return await bot.sendErrorMessage(chatId, 'file_too_large');
+        await bot.sendErrorMessage(chatId, 'file_too_large');
+        return new Response('OK');
     }
 
     try {

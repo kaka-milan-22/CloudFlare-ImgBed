@@ -63,12 +63,11 @@ export class TelegramBot {
     }
 
     async downloadFile(fileId) {
-        const fileInfo = await this.api.getFileInfo(fileId);
-        if (!fileInfo || !fileInfo.file_path) {
+        const filePath = await this.api.getFilePath(fileId);
+        if (!filePath) {
             throw new Error('Failed to get file path');
         }
-        const filePath = this.api.getFilePath(fileInfo.file_path);
-        return await this.api.getFileContent(filePath);
+        return await this.api.getFileContent(fileId);
     }
 
     async checkRateLimit(chatId, limitPerMinute = 10) {
@@ -116,7 +115,7 @@ export class TelegramBot {
         };
     }
 
-    async formatHelpMessage() {
+    async formatHelpMessage(chatId) {
         const text = `
 🤖 <b>CloudFlare ImgBed Bot Help</b>
 
@@ -136,7 +135,7 @@ Just send me an image and I'll upload it for you!
 Use /settings to choose your preferred formats.
         `.trim();
 
-        return await this.sendHtml(text);
+        return await this.sendHtml(chatId, text);
     }
 
     async formatSettingsMessage(chatId) {
@@ -167,7 +166,7 @@ Example:
 /settings plain s3
         `.trim();
 
-        return await this.sendHtml(text);
+        return await this.sendHtml(chatId, text);
     }
 
     async sendErrorMessage(chatId, error) {
