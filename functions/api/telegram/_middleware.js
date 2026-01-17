@@ -20,4 +20,5 @@ export async function onRequest(context) {
     }
 
     context.botConfig = botConfig;
+    return context.next();
 }
