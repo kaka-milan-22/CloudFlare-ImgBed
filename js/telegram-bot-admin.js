@@ -2,6 +2,7 @@
   const SECTION_ID = 'telegram-bot-config-section';
   const STYLE_ID = 'telegram-bot-config-style';
   const API_URL = '/api/manage/sysConfig/telegram_bot';
+  const UPLOAD_API_URL = '/api/manage/sysConfig/upload';
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -28,6 +29,19 @@
         font-size: 12px;
         color: var(--el-text-color-secondary);
         margin-top: 6px;
+      }
+      .tg-bot-select {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--el-border-color-lighter);
+        background: var(--el-fill-color-blank);
+        color: var(--el-text-color-primary);
+        outline: none;
+      }
+      .tg-bot-select:disabled {
+        background: var(--el-fill-color-lighter);
+        color: var(--el-text-color-secondary);
       }
       .tg-bot-switch {
         display: inline-flex;
@@ -119,6 +133,12 @@
             <div class="tg-bot-url" id="tg-bot-url">-</div>
           </div>
         </div>
+        <div class="el-form-item">
+          <label class="el-form-item__label">默认上传渠道</label>
+          <div class="el-form-item__content">
+            <select class="tg-bot-select" id="tg-bot-channel"></select>
+          </div>
+        </div>
         <div class="actions" data-v-6c3b44d2>
           <button class="el-button el-button--primary" type="button" id="tg-bot-save">保存设置</button>
           <button class="el-button" type="button" id="tg-bot-copy">复制 Webhook URL</button>
@@ -135,6 +155,7 @@
     const tokenEl = section.querySelector('#tg-bot-token');
     const webhookEl = section.querySelector('#tg-bot-webhook');
     const urlEl = section.querySelector('#tg-bot-url');
+    const channelEl = section.querySelector('#tg-bot-channel');
     const saveBtn = section.querySelector('#tg-bot-save');
     const copyBtn = section.querySelector('#tg-bot-copy');
     const statusEl = section.querySelector('#tg-bot-status');
@@ -165,6 +186,7 @@
       enabledEl.disabled = isDisabled;
       tokenEl.disabled = isDisabled;
       webhookEl.disabled = isDisabled;
+      channelEl.disabled = isDisabled;
       saveBtn.disabled = isDisabled;
       syncSwitchClass();
       if (isDisabled) {
@@ -174,9 +196,48 @@
       }
     }
 
+    function normalizeChannelList(uploadConfig) {
+      const channelMap = new Map();
+      const addType = (type, list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          channelMap.set(type, type);
+        }
+      };
+
+      addType('telegram', uploadConfig?.telegram?.channels);
+      addType('cfr2', uploadConfig?.cfr2?.channels);
+      addType('s3', uploadConfig?.s3?.channels);
+      addType('discord', uploadConfig?.discord?.channels);
+      addType('huggingface', uploadConfig?.huggingface?.channels);
+
+      if (channelMap.size === 0) {
+        ['telegram', 'cfr2', 's3', 'discord', 'huggingface'].forEach((type) => channelMap.set(type, type));
+      }
+
+      return Array.from(channelMap.keys());
+    }
+
+    async function loadUploadChannels() {
+      try {
+        const res = await fetch(UPLOAD_API_URL, { method: 'GET' });
+        if (!res.ok) throw new Error('获取上传渠道失败');
+        const data = await res.json();
+        const channels = normalizeChannelList(data);
+
+        channelEl.innerHTML = channels
+          .map((type) => `<option value="${type}">${type}</option>`)
+          .join('');
+      } catch (err) {
+        channelEl.innerHTML = ['telegram', 'cfr2', 's3', 'discord', 'huggingface']
+          .map((type) => `<option value="${type}">${type}</option>`)
+          .join('');
+      }
+    }
+
     async function loadConfig() {
       setStatus('加载中...');
       try {
+        await loadUploadChannels();
         const res = await fetch(API_URL, { method: 'GET' });
         if (!res.ok) throw new Error('获取配置失败');
         const data = await res.json();
@@ -186,6 +247,7 @@
         syncSwitchClass();
         tokenEl.value = currentConfig.botToken || '';
         webhookEl.value = currentConfig.webhookSecret || '';
+        channelEl.value = currentConfig.defaultUploadChannel || channelEl.value || 'telegram';
         updateWebhookUrl();
 
         setDisabled(Boolean(currentConfig.fixed));
@@ -204,6 +266,7 @@
             enabled: Boolean(enabledEl.checked),
             botToken: tokenEl.value.trim(),
             webhookSecret: webhookEl.value.trim(),
+            defaultUploadChannel: channelEl.value || 'telegram',
           },
         };
 
