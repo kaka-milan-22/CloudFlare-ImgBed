@@ -136,16 +136,31 @@ async function handleFileUpload(context, message, bot, botConfig) {
     }
 
     try {
-        const fileResponse = await bot.downloadFile(fileId);
+        let fileBlob = null;
+        let finalFileName = fileName;
+        let finalMimeType = mimeType;
 
-        if (!fileResponse.ok) {
-            throw new Error('Failed to download file from Telegram');
+        if (isHeicType(mimeType, fileName)) {
+            const converted = await tryConvertHeicToJpeg(bot, fileId);
+            if (converted) {
+                fileBlob = converted;
+                finalFileName = replaceFileExtension(fileName, 'jpg');
+                finalMimeType = 'image/jpeg';
+            }
         }
 
-        const fileBlob = await fileResponse.blob();
+        if (!fileBlob) {
+            const fileResponse = await bot.downloadFile(fileId);
+
+            if (!fileResponse.ok) {
+                throw new Error('Failed to download file from Telegram');
+            }
+
+            fileBlob = await fileResponse.blob();
+        }
 
         const formData = new FormData();
-        formData.append('file', new File([fileBlob], fileName, { type: mimeType }));
+        formData.append('file', new File([fileBlob], finalFileName, { type: finalMimeType }));
 
         const url = new URL(context.request.url);
         const uploadUrl = `${url.origin}/upload`;
@@ -190,13 +205,62 @@ async function handleFileUpload(context, message, bot, botConfig) {
             throw new Error('No image URL returned from upload API');
         }
 
-        await bot.sendResponse(chatId, imageUrl, userPrefs, fileName);
+        await bot.sendResponse(chatId, imageUrl, userPrefs, finalFileName);
 
         return new Response('OK');
     } catch (error) {
         console.error('File upload error:', error);
         await bot.sendPlain(chatId, `❌ Error: ${error.message}`);
         return new Response('OK');
+    }
+}
+
+function isHeicType(mimeType, fileName) {
+    if (mimeType === 'image/heic' || mimeType === 'image/heif') {
+        return true;
+    }
+    if (!fileName) return false;
+    const lowerName = fileName.toLowerCase();
+    return lowerName.endsWith('.heic') || lowerName.endsWith('.heif');
+}
+
+function replaceFileExtension(fileName, newExt) {
+    if (!fileName) return `file.${newExt}`;
+    const lastDot = fileName.lastIndexOf('.');
+    if (lastDot === -1) {
+        return `${fileName}.${newExt}`;
+    }
+    return `${fileName.slice(0, lastDot)}.${newExt}`;
+}
+
+async function tryConvertHeicToJpeg(bot, fileId) {
+    try {
+        const filePath = await bot.api.getFilePath(fileId);
+        if (!filePath) return null;
+
+        const fileUrl = `${bot.api.fileDomain}/file/bot${bot.botToken}/${filePath}`;
+        const response = await fetch(fileUrl, {
+            headers: bot.api.defaultHeaders,
+            cf: {
+                image: {
+                    format: 'jpeg'
+                }
+            }
+        });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.toLowerCase().includes('image/jpeg')) {
+            return null;
+        }
+
+        return await response.blob();
+    } catch (error) {
+        console.error('HEIC conversion failed:', error);
+        return null;
     }
 }
 
