@@ -30,6 +30,9 @@ async function handleCommand(context, text, bot, chatId, botConfig) {
     switch (command) {
         case '/start':
             await bot.sendPlain(chatId,
+                '👋 Welcome! Send me an image and I\'ll upload it for you.\n\n' +
+                'Use /help to see available commands.'
+            );
             await bot.formatHelpMessage(chatId);
             return new Response('OK');
 
