@@ -8,19 +8,22 @@ export class TelegramBot {
         this.api = new TelegramAPI(botToken);
     }
 
+    escapeMarkdownV2(text) {
+        return String(text).replace(/([_\*\[\]\(\)~`>#+\-=|{}.!])/g, '\\$1');
+    }
+
     async sendResponse(chatId, url, userPreferences, fileName = '') {
         const formats = userPreferences.formats || ['html', 'markdown'];
-        const messages = [];
 
         if (formats.includes('html')) {
-            messages.push(url);
-        }
-        if (formats.includes('markdown')) {
-            messages.push(`![${fileName || 'image'}](${url})`);
+            await this.sendPlain(chatId, url);
         }
 
-        const text = messages.join('\n\n');
-        return await this.api.sendMessage(chatId, text, 'HTML');
+        if (formats.includes('markdown')) {
+            const altText = this.escapeMarkdownV2(fileName || 'image');
+            const safeUrl = this.escapeMarkdownV2(url);
+            await this.sendMarkdown(chatId, `![${altText}](${safeUrl})`);
+        }
     }
 
     async sendMarkdown(chatId, text) {
@@ -129,7 +132,7 @@ Just send me an image and I'll upload it for you!
 
 <b>Available output formats:</b>
 • HTML - url
-• Markdown - [link](url)
+• Markdown - ![image](url)
 
 <b>Settings:</b>
 Use /settings to choose your preferred formats.
