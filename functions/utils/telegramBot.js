@@ -13,7 +13,7 @@ export class TelegramBot {
         const messages = [];
 
         if (formats.includes('html')) {
-            messages.push(`<a href="${url}">${fileName || url}</a>`);
+            messages.push(url);
         }
         if (formats.includes('markdown')) {
             messages.push(`[${fileName || 'Link'}](${url})`);
@@ -128,7 +128,7 @@ export class TelegramBot {
 Just send me an image and I'll upload it for you!
 
 <b>Available output formats:</b>
-• HTML - &lt;a href="url"&gt;link&lt;/a&gt;
+• HTML - url
 • Markdown - [link](url)
 
 <b>Settings:</b>
